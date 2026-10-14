@@ -178,9 +178,6 @@ fun <K : Action> KeymapItemEditDialog(
                             }
                             .onPointerEvent(PointerEventType.Press) {
                                 state.updateKeySet(it)
-                            }
-                            .onPointerEvent(PointerEventType.Scroll) {
-                                state.updateKeySet(it)
                             },
                         value = state.text,
                         textStyle = MaterialTheme.typography.body2

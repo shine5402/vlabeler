@@ -451,16 +451,9 @@ fun Strings.en(): String = when (this) {
     PreferencesKeymapMouseClickActionDescription ->
         "Customize key bindings for mouse click actions.\n" +
             "An action is conducted only while all the keys in the key bindings are pressed."
-    PreferencesKeymapMouseScrollAction -> "Mouse scroll actions"
-    PreferencesKeymapMouseScrollActionDescription ->
-        "Customize key bindings for mouse scroll actions.\n" +
-            "An action is conducted only while all the keys in the key bindings are pressed."
     PreferencesKeymapEditDialogTitle -> "Editing key bind for:"
     PreferencesKeymapEditDialogDescriptionMouseClick ->
         "Left/Right click on the text field with other " +
-            "keys pressed to input a shortcut."
-    PreferencesKeymapEditDialogDescriptionMouseScroll ->
-        "Scroll mouse wheel on the text field with other " +
             "keys pressed to input a shortcut."
     PreferencesKeymapEditDialogConflictingLabel -> "Already assigned to:"
     PreferencesKeymapEditDialogConflictingWarning ->
@@ -724,14 +717,6 @@ fun Strings.en(): String = when (this) {
     ActionPlayAudioFromScreenStart -> "Play the Audio from the Start of the Screen until the Clicked Position"
     ActionPlayAudioRange -> "Play the Audio in the Dragged Range"
     ActionPlayAudioRangeRepeat -> "Play the Audio in the Dragged Range Repeatedly"
-    ActionScrollCanvasLeft -> "Scroll Canvas to Left"
-    ActionScrollCanvasRight -> "Scroll Canvas to Right"
-    ActionZoomInCanvas -> "Zoom In"
-    ActionZoomOutCanvas -> "Zoom Out"
-    ActionGoToNextEntry -> "Go to Next Entry"
-    ActionGoToPreviousEntry -> "Go to Previous Entry"
-    ActionGoToNextSample -> "Go to Next Sample"
-    ActionGoToPreviousSample -> "Go to Previous Sample"
     CheckForUpdatesAlreadyUpdated -> "You already have the latest version of vLabeler installed."
     CheckForUpdatesFailure -> "Could not fetch the latest version information."
     UpdaterDialogSummaryDetailsLink -> "Details"

@@ -208,8 +208,8 @@ enum class Key(
     F12("F12", listOf(ActualKey.F12)),
     MouseLeftClick("Left Click", listOf(), mainKeyActionType = ActionType.MouseClick),
     MouseRightClick("Right Click", listOf(), mainKeyActionType = ActionType.MouseClick),
-    MouseScrollUp("Scroll Up", listOf(), mainKeyActionType = ActionType.MouseScroll),
-    MouseScrollDown("Scroll Down", listOf(), mainKeyActionType = ActionType.MouseScroll),
+    MouseScrollUp("Scroll Up", listOf(), mainKeyActionType = null),
+    MouseScrollDown("Scroll Down", listOf(), mainKeyActionType = null),
     ;
 
     fun isKey(actualKey: ActualKey) = actualKeys.contains(actualKey)

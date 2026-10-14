@@ -3,7 +3,6 @@ package com.sdercolin.vlabeler.model
 import androidx.compose.runtime.Immutable
 import com.sdercolin.vlabeler.model.action.KeyAction
 import com.sdercolin.vlabeler.model.action.MouseClickAction
-import com.sdercolin.vlabeler.model.action.MouseScrollAction
 import com.sdercolin.vlabeler.model.key.KeySet
 import com.sdercolin.vlabeler.model.palette.ColorPaletteDefinition
 import com.sdercolin.vlabeler.repository.FontRepository
@@ -815,14 +814,12 @@ data class AppConf(
      *
      * @param keyActionMap Custom keymap for [KeyAction]s.
      * @param mouseClickActionMap Custom keymap for [MouseClickAction]s.
-     * @param mouseScrollActionMap Custom keymap for [MouseScrollAction]s.
      */
     @Serializable
     @Immutable
     data class Keymaps(
         val keyActionMap: Map<KeyAction, KeySet?> = mapOf(),
         val mouseClickActionMap: Map<MouseClickAction, KeySet?> = mapOf(),
-        val mouseScrollActionMap: Map<MouseScrollAction, KeySet?> = mapOf(),
     )
 
     /**

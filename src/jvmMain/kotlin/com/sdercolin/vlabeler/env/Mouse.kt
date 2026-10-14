@@ -9,6 +9,24 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import com.sdercolin.vlabeler.model.key.Key
 
 /**
+ * Whether this [PointerEvent] is a horizontal scroll, which Compose reports as a non-zero x delta.
+ */
+val PointerEvent.isHorizontalScroll: Boolean
+    get() {
+        val change = changes.firstOrNull()?.scrollDelta ?: return false
+        return change.x != 0f && change.y == 0f
+    }
+
+/**
+ * The scroll amount of this [PointerEvent] in wheel notches, on the same axis that [toVirtualKey] uses.
+ */
+val PointerEvent.scrollNotches: Float
+    get() {
+        val change = changes.firstOrNull()?.scrollDelta ?: return 0f
+        return if (change.x != 0f) change.x else change.y
+    }
+
+/**
  * Converts a [PointerEvent] to a [Key] if it is a mouse click or scroll event.
  */
 fun PointerEvent.toVirtualKey(): Key? {

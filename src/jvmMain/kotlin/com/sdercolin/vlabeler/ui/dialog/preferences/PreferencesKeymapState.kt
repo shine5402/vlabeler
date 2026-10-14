@@ -11,8 +11,6 @@ import com.sdercolin.vlabeler.model.action.KeyAction
 import com.sdercolin.vlabeler.model.action.KeyActionKeyBind
 import com.sdercolin.vlabeler.model.action.MouseClickAction
 import com.sdercolin.vlabeler.model.action.MouseClickActionKeyBind
-import com.sdercolin.vlabeler.model.action.MouseScrollAction
-import com.sdercolin.vlabeler.model.action.MouseScrollActionKeyBind
 import com.sdercolin.vlabeler.ui.string.Language
 
 class PreferencesKeymapState<K : Action>(private val item: PreferencesItem.Keymap<K>, state: PreferencesEditorState) {
@@ -45,8 +43,6 @@ class PreferencesKeymapState<K : Action>(private val item: PreferencesItem.Keyma
                 .map { KeyActionKeyBind(it, it.defaultKeySet) }
             ActionType.MouseClick -> MouseClickAction.entries.filterNot { customActions.contains(it as Action) }
                 .map { MouseClickActionKeyBind(it, it.defaultKeySet) }
-            ActionType.MouseScroll -> MouseScrollAction.entries.filterNot { customActions.contains(it as Action) }
-                .map { MouseScrollActionKeyBind(it, it.defaultKeySet) }
         }
             .filterIsInstance<ActionKeyBind<K>>()
             .plus(customKeyBinds)

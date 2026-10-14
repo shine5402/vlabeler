@@ -21,6 +21,21 @@ Some UI elements may be different in the latest version.
 [YouTube](https://youtu.be/xFX8SRrJEzM) | [bilibili](https://www.bilibili.com/video/BV1Ve4y1S7FF)
 </details>
 
+## Fork-specific changes
+
+This fork ([shine5402/vlabeler](https://github.com/shine5402/vlabeler)) is based on `1.7.0-beta2`. The following changes
+are not part of upstream.
+
+- The mouse wheel zooms by default. `Shift` + mouse wheel switches entries, and `Ctrl` + `Shift` + mouse wheel switches
+  samples.
+- Horizontal mouse wheel and trackpad horizontal swipes only scroll the canvas. They never switch entries or change the
+  zoom.
+- Mouse wheel actions are fixed presets and cannot be customized. The `Mouse scroll actions` page in `Keymap` has been
+  removed. Mouse click key bindings can still be customized. Old mouse scroll settings are ignored.
+- Precise wheels (touchpads, high-resolution mice) are accumulated, so an action fires once per notch and small
+  movements no longer switch entries. Partial notches are dropped after a direction change, an action change, or 400 ms
+  without input.
+
 ## Download
 
 See [Releases](https://github.com/sdercolin/vlabeler/releases).
@@ -174,22 +189,22 @@ Please also see the section of the [Playback tool](#playback) for more actions.
 
 ### Scrolling
 
-- `Shift` + mouse wheel scroll: horizontal scroll
+- Horizontal mouse wheel / trackpad swipe: horizontal scroll
 - `F` or Focus button in the center of the bottom bar: Scroll to center the current entry on the screen
 
 ### Zoom in/out
 
 - `=` or `+` button in the bottom bar: zoom in
 - `-` or `-` button in the bottom bar: zoom out
-- `Ctrl` + `Shift` + mouse wheel scroll: zoom in/out
+- Mouse wheel scroll: zoom in/out
 - Resolution button in the bottom bar: open dialog for resolution input
 
 ### Switch entry/sample
 
-- Mouse wheel scroll: go to previous/next entry
+- `Shift` + mouse wheel scroll: go to previous/next entry
 - `Up`/`Down`: go to previous/next entry
 - `<`/`>` buttons in the bottom bar: go to previous/next entry
-- `Ctrl` + mouse wheel scroll: go to previous/next sample
+- `Ctrl` + `Shift` + mouse wheel scroll: go to previous/next sample
 - `Ctrl` + `Up`/`Down`: go to previous/next sample
 - `<<`/`>>` buttons in the bottom bar: go to previous/next sample
 - `Ctrl` + `G` or entry number button in the bottom bar: show `Go to entry...` dialog
@@ -481,17 +496,14 @@ Please check [App Usage Tracking](readme/tracking.md) for details.
 
 ## Known issues
 
-1. The `Scroll Canvas to Left/Right` actions in `Keymap` -> `Mouse scroll actions` cannot be changed at present.
-   If you are using a trackpad, we recommend you to disable the `Go to Next/Previous Entry` actions in the same page, so
-   that you can scroll the canvas by trackpad without triggering the entry navigation actions.
-2. On Linux, the file chooser may not be able to select an empty folder. Please create something inside, or copy + paste
+1. On Linux, the file chooser may not be able to select an empty folder. Please create something inside, or copy + paste
    its path
-3. On Linux, sometimes the application may not be able to recycle memory properly.
+2. On Linux, sometimes the application may not be able to recycle memory properly.
    You can use `Tools` -> `Recycle Memory` to force it to recycle memory.
-4. Sometimes the window freezes unexpectedly. You can resize the window to refresh it.
-5. If all texts besides the menu bar are invisible, please try setting the environment variable `SKIKO_RENDER_API` to
+3. Sometimes the window freezes unexpectedly. You can resize the window to refresh it.
+4. If all texts besides the menu bar are invisible, please try setting the environment variable `SKIKO_RENDER_API` to
    `SOFTWARE`.
-6. On some Linux distributions, the file dialogs may not work properly. In this case, you can enable a custom file
+5. On some Linux distributions, the file dialogs may not work properly. In this case, you can enable a custom file
    dialog in `Settings` -> `Preferences` -> `Miscellaneous`. Please note that the custom file dialog may not be as
    powerful as the system file dialog.
 

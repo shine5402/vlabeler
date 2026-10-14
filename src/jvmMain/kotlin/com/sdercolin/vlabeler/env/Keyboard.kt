@@ -36,7 +36,6 @@ class KeyboardViewModel(private val coroutineScope: CoroutineScope, keymaps: App
     private var keyActions: List<Pair<KeySet, KeyAction>> = KeyAction.getNonMenuKeySets(keymaps)
     private var mouseClickActions: Map<Pair<KeySet, Tool>, MouseClickAction> = MouseClickAction.getKeySets(keymaps)
         .associateWithTool()
-    private var mouseScrollActions: Map<KeySet, MouseScrollAction> = MouseScrollAction.getKeySets(keymaps).toMap()
 
     private val _keyboardActionFlow = MutableSharedFlow<KeyAction>(replay = 0)
 
@@ -58,11 +57,10 @@ class KeyboardViewModel(private val coroutineScope: CoroutineScope, keymaps: App
     suspend fun updateKeymaps(keymaps: AppConf.Keymaps) {
         keyActions = KeyAction.getNonMenuKeySets(keymaps)
         mouseClickActions = MouseClickAction.getKeySets(keymaps).associateWithTool()
-        mouseScrollActions = MouseScrollAction.getKeySets(keymaps).toMap()
         _keyboardStateFlow.emit(getIdleState())
     }
 
-    private fun getIdleState() = KeyboardState(null, mouseClickActions, mouseScrollActions)
+    private fun getIdleState() = KeyboardState(null, mouseClickActions)
 
     private suspend fun emitEvent(action: KeyAction) {
         _keyboardActionFlow.emit(action)
@@ -80,7 +78,7 @@ class KeyboardViewModel(private val coroutineScope: CoroutineScope, keymaps: App
         val caughtKeyAction = keyActions.firstOrNull { it.first == keySet }?.second
 
         coroutineScope.launch {
-            emitState(KeyboardState(keySet, mouseClickActions, mouseScrollActions))
+            emitState(KeyboardState(keySet, mouseClickActions))
             caughtKeyAction?.let { emitEvent(it) }
         }
 
@@ -108,13 +106,11 @@ class KeyboardViewModel(private val coroutineScope: CoroutineScope, keymaps: App
  *
  * @property keySet The current pressed keys.
  * @property availableMouseClickActions A map of [KeySet]s to [MouseClickAction]s that are available to be triggered.
- * @property availableMouseScrollActions A map of [KeySet]s to [MouseScrollAction]s that are available to be triggered.
  */
 @Immutable
 data class KeyboardState(
     val keySet: KeySet?,
     val availableMouseClickActions: Map<Pair<KeySet, Tool>, MouseClickAction>,
-    val availableMouseScrollActions: Map<KeySet, MouseScrollAction>,
 ) {
 
     /**
@@ -132,7 +128,11 @@ data class KeyboardState(
     fun getEnabledMouseScrollAction(pointerEvent: PointerEvent): MouseScrollAction? {
         if (pointerEvent.type != PointerEventType.Scroll) return null
         val mainKey = pointerEvent.toVirtualKey() ?: return null
-        return availableMouseScrollActions[KeySet(mainKey, keySet?.subKeys.orEmpty())]
+        val subKeys = keySet?.subKeys.orEmpty()
+        // AWT marks a horizontal wheel with Shift even when Shift is not pressed, so only a physically held Shift
+        // keeps a horizontal event bound to zoom. Other horizontal events only scroll the canvas.
+        if (pointerEvent.isHorizontalScroll && Key.Shift !in subKeys) return null
+        return MouseScrollAction.entries.firstOrNull { it.keySet == KeySet(mainKey, subKeys) }
     }
 }
 

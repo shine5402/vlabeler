@@ -442,17 +442,10 @@ fun Strings.ko(): String? = when (this) {
     PreferencesKeymapMouseClickActionDescription ->
         "마우스 입력에 대응하는 동작을 커스텀합니다.\n" +
             "동작에 속한 키들이 모두 눌려 있을 경우에만 작업이 실행됩니다."
-    PreferencesKeymapMouseScrollAction -> "마우스 스크롤 입력"
-    PreferencesKeymapMouseScrollActionDescription ->
-        "마우스 스크롤 입력에 대응하는 동작을 커스텀합니다.\n" +
-            "동작에 속한 키들이 모두 눌려 있을 경우에만 작업이 실행됩니다."
     PreferencesKeymapEditDialogTitle -> "단축키 편집 중:"
     PreferencesKeymapEditDialogDescriptionMouseClick ->
         "단축키 입력으로 입력된 키들이 눌려 있을 때 " +
             "텍스트 입력 필드의 왼쪽/오른쪽 클릭."
-    PreferencesKeymapEditDialogDescriptionMouseScroll ->
-        "단축키 입력으로 입력된 키들이 눌려 있을 때 " +
-            "텍스트 입력 필드의 마우스 스크롤."
     PreferencesKeymapEditDialogConflictingLabel -> "이미 지정된 단축키:"
     PreferencesKeymapEditDialogConflictingWarning ->
         "이 단축키는 이미 다른 작업에 지정되어 있어요.\n" +
@@ -701,14 +694,6 @@ fun Strings.ko(): String? = when (this) {
     ActionPlayAudioFromScreenStart -> "현재 화면에 표시된 영역의 시작 ~ 클릭된 위치까지 재생"
     ActionPlayAudioRange -> "드래그된 범위의 오디오 재생"
     ActionPlayAudioRangeRepeat -> "드래그된 범위의 오디오 재생 (반복)"
-    ActionScrollCanvasLeft -> "캔버스 스크롤 (왼쪽으로)"
-    ActionScrollCanvasRight -> "캔버스 스크롤 (오른쪽으로)"
-    ActionZoomInCanvas -> "확대"
-    ActionZoomOutCanvas -> "축소"
-    ActionGoToNextEntry -> "다음 엔트리로"
-    ActionGoToPreviousEntry -> "이전 엔트리로"
-    ActionGoToNextSample -> "다음 샘플으로"
-    ActionGoToPreviousSample -> "이전 샘플으로"
     CheckForUpdatesAlreadyUpdated -> "vLabeler가 최신 버전이에요."
     CheckForUpdatesFailure -> "최신 버전의 정보를 가져오지 못했어요."
     UpdaterDialogSummaryDetailsLink -> "상세 정보"

@@ -11,6 +11,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import com.sdercolin.vlabeler.audio.conversion.WaveConverterException
 import com.sdercolin.vlabeler.env.KeyboardState
 import com.sdercolin.vlabeler.env.Log
+import com.sdercolin.vlabeler.env.ScrollStepAccumulator
+import com.sdercolin.vlabeler.env.scrollNotches
 import com.sdercolin.vlabeler.io.getPropertyValue
 import com.sdercolin.vlabeler.model.AppConf
 import com.sdercolin.vlabeler.model.EntrySelector
@@ -55,6 +57,7 @@ class EditorState(
     private val appConf get() = appState.appConf
     val keyboardViewModel = appState.keyboardViewModel
     val scrollFitViewModel = appState.scrollFitViewModel
+    private val scrollStepAccumulator = ScrollStepAccumulator()
     private val player get() = appState.player
     var tool: Tool by mutableStateOf(Tool.Cursor)
 
@@ -400,7 +403,14 @@ class EditorState(
         keyboardState: KeyboardState,
     ) {
         if (isActive.not()) return
-        when (keyboardState.getEnabledMouseScrollAction(event)) {
+        val action = keyboardState.getEnabledMouseScrollAction(event) ?: return
+        val uptimeMillis = event.changes.firstOrNull()?.uptimeMillis ?: return
+        val steps = scrollStepAccumulator.add(action, event.scrollNotches, uptimeMillis)
+        repeat(steps) { performMouseScrollAction(action) }
+    }
+
+    private fun performMouseScrollAction(action: MouseScrollAction) {
+        when (action) {
             MouseScrollAction.GoToNextSample -> switchEntryByPointerEvent(
                 shouldSwitchSample = true,
                 positive = true,
@@ -423,7 +433,6 @@ class EditorState(
 
             MouseScrollAction.ZoomInCanvas -> changeResolutionByPointerEvent(true)
             MouseScrollAction.ZoomOutCanvas -> changeResolutionByPointerEvent(false)
-            else -> Unit
         }
     }
 

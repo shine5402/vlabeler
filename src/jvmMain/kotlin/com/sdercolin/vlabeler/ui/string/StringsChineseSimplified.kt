@@ -405,13 +405,8 @@ fun Strings.zhHans(): String? = when (this) {
     PreferencesKeymapMouseClickActionDescription ->
         "编辑鼠标点击操作的键位映射。\n" +
             "这些操作只有对应的键位组合全部被按下时才会被触发。"
-    PreferencesKeymapMouseScrollAction -> "鼠标滚轮操作"
-    PreferencesKeymapMouseScrollActionDescription ->
-        "编辑鼠标滚轮操作的键位映射。\n" +
-            "这些操作只有对应的键位组合全部被按下时才会被触发。"
     PreferencesKeymapEditDialogTitle -> "编辑键位映射："
     PreferencesKeymapEditDialogDescriptionMouseClick -> "通过在该输入框上左键/右键单击来输入对应键位。"
-    PreferencesKeymapEditDialogDescriptionMouseScroll -> "通过在该输入框上滚动鼠标滚轮来输入对应键位。"
     PreferencesKeymapEditDialogConflictingLabel -> "该键位已被以下操作占用："
     PreferencesKeymapEditDialogConflictingWarning -> "该键位组合已被分配到其他操作。是否要移除其他分配？"
     PreferencesKeymapEditDialogConflictingWarningKeep -> "保持"
@@ -646,14 +641,6 @@ fun Strings.zhHans(): String? = when (this) {
     ActionPlayAudioFromScreenStart -> "播放屏幕左端位置到点击位置的音频"
     ActionPlayAudioRange -> "播放拖动范围内的音频"
     ActionPlayAudioRangeRepeat -> "循环播放拖动范围内的音频"
-    ActionScrollCanvasLeft -> "向左滚动画布"
-    ActionScrollCanvasRight -> "向右滚动画布"
-    ActionZoomInCanvas -> "放大"
-    ActionZoomOutCanvas -> "缩小"
-    ActionGoToNextEntry -> "下一个条目"
-    ActionGoToPreviousEntry -> "上一个条目"
-    ActionGoToNextSample -> "下一个采样"
-    ActionGoToPreviousSample -> "上一个采样"
     CheckForUpdatesAlreadyUpdated -> "已更新到最新版本。"
     CheckForUpdatesFailure -> "检查更新失败。"
     UpdaterDialogSummaryDetailsLink -> "查看详细信息"

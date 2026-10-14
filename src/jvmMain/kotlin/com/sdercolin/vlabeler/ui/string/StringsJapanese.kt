@@ -431,12 +431,8 @@ fun Strings.ja(): String? = when (this) {
     PreferencesKeymapMouseClickAction -> "マウス（クリック）"
     PreferencesKeymapMouseClickActionDescription ->
         "マウスのクリックを組み合わせたショートカットをカスタマイズします。これらの操作は、対応するキーがすべて押されたときに実行されます。"
-    PreferencesKeymapMouseScrollAction -> "マウス（スクロール）"
-    PreferencesKeymapMouseScrollActionDescription ->
-        "マウスのスクロールを組み合わせたショートカットをカスタマイズします。これらの操作は、対応するキーがすべて押されたときに実行されます。"
     PreferencesKeymapEditDialogTitle -> "ショートカットを編集："
     PreferencesKeymapEditDialogDescriptionMouseClick -> "入力欄を選択し、（キー入力+）左クリック/右クリックで入力します。"
-    PreferencesKeymapEditDialogDescriptionMouseScroll -> "入力欄を選択し、（キー入力+）マウスホイールで入力します。"
     PreferencesKeymapEditDialogConflictingLabel -> "すでに他の操作で使用されています："
     PreferencesKeymapEditDialogConflictingWarning ->
         "この組み合わせは他の操作で使用されています。重複している操作を削除しますか？"
@@ -682,14 +678,6 @@ fun Strings.ja(): String? = when (this) {
     ActionPlayAudioFromScreenStart -> "画面の最初からクリック位置までの音声を再生"
     ActionPlayAudioRange -> "クリックの範囲の音声を再生"
     ActionPlayAudioRangeRepeat -> "クリックの範囲の音声を繰り返し再生"
-    ActionScrollCanvasLeft -> "キャンパスを左にスクロール"
-    ActionScrollCanvasRight -> "キャンパスを右にスクロール"
-    ActionZoomInCanvas -> "ズームイン"
-    ActionZoomOutCanvas -> "ズームアウト"
-    ActionGoToNextEntry -> "次のエントリ"
-    ActionGoToPreviousEntry -> "前のエントリ"
-    ActionGoToNextSample -> "次のサンプル"
-    ActionGoToPreviousSample -> "前のサンプル"
     CheckForUpdatesAlreadyUpdated -> "すでに最新のバージョンの vLabeler がインストールされています。"
     CheckForUpdatesFailure -> "アップデートの確認に失敗しました。"
     UpdaterDialogSummaryDetailsLink -> "詳細"

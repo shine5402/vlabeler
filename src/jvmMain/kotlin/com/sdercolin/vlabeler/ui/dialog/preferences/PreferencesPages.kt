@@ -8,7 +8,6 @@ import com.sdercolin.vlabeler.model.action.ActionKeyBind
 import com.sdercolin.vlabeler.model.action.ActionType
 import com.sdercolin.vlabeler.model.action.KeyActionKeyBind
 import com.sdercolin.vlabeler.model.action.MouseClickActionKeyBind
-import com.sdercolin.vlabeler.model.action.MouseScrollActionKeyBind
 import com.sdercolin.vlabeler.repository.ColorPaletteRepository
 import com.sdercolin.vlabeler.repository.FontRepository
 import com.sdercolin.vlabeler.repository.update.model.UpdateChannel
@@ -558,7 +557,7 @@ object PreferencesPages {
     object Keymap : PreferencesPage(Strings.PreferencesKeymap, Strings.PreferencesKeymapDescription) {
 
         override val children: List<PreferencesPage>
-            get() = listOf(KeymapKeyAction, KeymapMouseClickAction, KeymapMouseScrollAction)
+            get() = listOf(KeymapKeyAction, KeymapMouseClickAction)
     }
 
     object KeymapKeyAction : PreferencesPage(
@@ -605,29 +604,6 @@ object PreferencesPages {
                             }
                         },
                         update = { list -> copy(mouseClickActionMap = list.associate { it.action to it.keySet }) },
-                    )
-                }
-            }
-    }
-
-    object KeymapMouseScrollAction : PreferencesPage(
-        Strings.PreferencesKeymapMouseScrollAction,
-        Strings.PreferencesKeymapMouseScrollActionDescription,
-        scrollable = false,
-    ) {
-        override val content: List<PreferencesGroup>
-            get() = buildPageContent {
-                withContext(
-                    selector = { it.keymaps },
-                    updater = { copy(keymaps = it) },
-                ) {
-                    keymap(
-                        actionType = ActionType.MouseScroll,
-                        defaultValue = listOf(),
-                        select = { parent ->
-                            parent.mouseScrollActionMap.map { MouseScrollActionKeyBind(it.key, it.value) }
-                        },
-                        update = { list -> copy(mouseScrollActionMap = list.associate { it.action to it.keySet }) },
                     )
                 }
             }

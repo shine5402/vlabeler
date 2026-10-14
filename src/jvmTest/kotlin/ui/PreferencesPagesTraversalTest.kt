@@ -7,8 +7,6 @@ import com.sdercolin.vlabeler.model.action.KeyAction
 import com.sdercolin.vlabeler.model.action.KeyActionKeyBind
 import com.sdercolin.vlabeler.model.action.MouseClickAction
 import com.sdercolin.vlabeler.model.action.MouseClickActionKeyBind
-import com.sdercolin.vlabeler.model.action.MouseScrollAction
-import com.sdercolin.vlabeler.model.action.MouseScrollActionKeyBind
 import com.sdercolin.vlabeler.model.key.Key
 import com.sdercolin.vlabeler.model.key.KeySet
 import com.sdercolin.vlabeler.repository.ColorPaletteRepository
@@ -111,9 +109,6 @@ class PreferencesPagesTraversalTest {
             ActionType.MouseClick -> listOf(
                 MouseClickActionKeyBind(MouseClickAction.MoveParameter, KeySet(Key.MouseRightClick, setOf(Key.Alt))),
             )
-            ActionType.MouseScroll -> listOf(
-                MouseScrollActionKeyBind(MouseScrollAction.GoToNextEntry, KeySet(Key.MouseScrollUp, setOf(Key.Alt))),
-            )
         }
     }
 
@@ -146,8 +141,8 @@ class PreferencesPagesTraversalTest {
     fun `all pages are reachable and distinct`() {
         val pages = allPages()
         assertEquals(pages.size, pages.distinct().size, "duplicated page in the tree")
-        // 9 root pages + 6 charts children + 3 keymap children + 6 editor children
-        assertEquals(24, pages.size)
+        // 9 root pages + 6 charts children + 2 keymap children + 6 editor children
+        assertEquals(23, pages.size)
         pages.forEach { page ->
             assertEquals(page.displayedName.name, page.name)
         }
@@ -262,7 +257,6 @@ class PreferencesPagesTraversalTest {
         val expectations = mapOf(
             PreferencesPages.KeymapKeyAction to ActionType.Key,
             PreferencesPages.KeymapMouseClickAction to ActionType.MouseClick,
-            PreferencesPages.KeymapMouseScrollAction to ActionType.MouseScroll,
         )
         expectations.forEach { (page, actionType) ->
             val items = page.content.flatMap { it.items }
