@@ -12,6 +12,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import org.zeromq.SocketType
@@ -31,6 +32,7 @@ class IpcServer(val coroutineScope: CoroutineScope) {
 
     fun bind() {
         socket = zContext.createSocket(SocketType.REP)
+        socket.receiveTimeOut = THROTTLE_PERIOD_MS.toInt()
         try {
             socket.bind("tcp://*:$PORT")
             Log.debug("IpcServer bound to port $PORT")
@@ -47,12 +49,11 @@ class IpcServer(val coroutineScope: CoroutineScope) {
             // before the assignment to `job` is visible.
             while (isActive && zContext.isClosed.not()) {
                 if (hasUncaughtError) {
-                    close()
                     return@launch
                 }
                 try {
                     delay(THROTTLE_PERIOD_MS)
-                    val message = socket.recvStr()
+                    val message = socket.recvStr() ?: continue
                     Log.info("Received request: $message")
                     val request = jsonForIpc.decodeFromString<IpcRequest>(message)
                     requestFlow.emit(request)
@@ -81,7 +82,11 @@ class IpcServer(val coroutineScope: CoroutineScope) {
 
     fun close() {
         runCatching {
-            job?.cancel()
+            val receiveJob = job
+            receiveJob?.cancel()
+            runBlocking { receiveJob?.join() }
+            // ZMQ waits for every socket to be closed before the context can be destroyed.
+            if (::socket.isInitialized) socket.close()
             zContext.destroy()
             Log.debug("IpcServer closed")
         }
