@@ -123,14 +123,16 @@ data class KeyboardState(
     }
 
     /**
-     * Get the [MouseScrollAction] that is enabled by the current pressed keys and the given [PointerEvent].
+     * Get the [KeySet] of the [MouseScrollAction] that is enabled by the current pressed keys and the given
+     * [PointerEvent], or null if no action matches.
      */
-    fun getEnabledMouseScrollAction(pointerEvent: PointerEvent): MouseScrollAction? {
+    fun getEnabledMouseScrollKeySet(pointerEvent: PointerEvent): KeySet? {
         if (pointerEvent.type != PointerEventType.Scroll) return null
         val mainKey = pointerEvent.toVirtualKey() ?: return null
         // Compose reports Shift + wheel and horizontal wheels on the x axis. They only pan the canvas.
         if (pointerEvent.isHorizontalScroll) return null
-        return MouseScrollAction.entries.firstOrNull { it.keySet == KeySet(mainKey, keySet?.subKeys.orEmpty()) }
+        val keySet = KeySet(mainKey, keySet?.subKeys.orEmpty())
+        return keySet.takeIf { MouseScrollAction.getByKeySet(it) != null }
     }
 }
 

@@ -21,6 +21,7 @@ import com.sdercolin.vlabeler.model.SampleInfo
 import com.sdercolin.vlabeler.model.action.KeyAction
 import com.sdercolin.vlabeler.model.action.MouseScrollAction
 import com.sdercolin.vlabeler.model.filter.EntryFilter
+import com.sdercolin.vlabeler.model.key.KeySet
 import com.sdercolin.vlabeler.repository.SampleInfoRepository
 import com.sdercolin.vlabeler.ui.AppState
 import com.sdercolin.vlabeler.ui.dialog.InputEntryNameDialogPurpose
@@ -402,14 +403,15 @@ class EditorState(
         event: PointerEvent,
         keyboardState: KeyboardState,
     ) {
+        val keySet = keyboardState.getEnabledMouseScrollKeySet(event) ?: return
         if (isActive.not()) return
-        val action = keyboardState.getEnabledMouseScrollAction(event) ?: return
         val uptimeMillis = event.changes.firstOrNull()?.uptimeMillis ?: return
-        val steps = scrollStepAccumulator.add(action, event.scrollNotches, uptimeMillis)
-        repeat(steps) { performMouseScrollAction(action) }
+        val firedKeySet = scrollStepAccumulator.add(keySet, event.scrollNotches, uptimeMillis) ?: return
+        performMouseScrollAction(firedKeySet)
     }
 
-    private fun performMouseScrollAction(action: MouseScrollAction) {
+    private fun performMouseScrollAction(keySet: KeySet) {
+        val action = MouseScrollAction.getByKeySet(keySet) ?: return
         when (action) {
             MouseScrollAction.GoToNextSample -> switchEntryByPointerEvent(
                 shouldSwitchSample = true,

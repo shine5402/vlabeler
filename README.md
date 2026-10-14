@@ -26,14 +26,14 @@ Some UI elements may be different in the latest version.
 This fork ([shine5402/vlabeler](https://github.com/shine5402/vlabeler)) is based on `1.7.0-beta2`. The following changes
 are not part of upstream.
 
-- The mouse wheel zooms by default. `Ctrl` + mouse wheel switches entries, and `Alt` + mouse wheel switches samples.
+- The mouse wheel switches entries by default. `Ctrl` + mouse wheel zooms, and `Alt` + mouse wheel switches samples.
 - `Shift` + mouse wheel, horizontal mouse wheel and trackpad horizontal swipes only scroll the canvas. They never switch
   entries or change the zoom.
+- Scroll events that arrive within 150 ms of each other are treated as one notch, and one notch fires one action. This
+  makes one notch fire one action on precise wheels (touchpads, high-resolution mice, remote desktop) too. A gesture
+  that moves less than a twentieth of a notch is ignored.
 - Mouse wheel actions are fixed presets and cannot be customized. The `Mouse scroll actions` page in `Keymap` has been
   removed. Mouse click key bindings can still be customized. Old mouse scroll settings are ignored.
-- Precise wheels (touchpads, high-resolution mice) are accumulated, so an action fires once per notch and small
-  movements no longer switch entries. Partial notches are dropped after a direction change, an action change, or 400 ms
-  without input.
 
 ## Download
 
@@ -195,12 +195,12 @@ Please also see the section of the [Playback tool](#playback) for more actions.
 
 - `=` or `+` button in the bottom bar: zoom in
 - `-` or `-` button in the bottom bar: zoom out
-- Mouse wheel scroll: zoom in/out
+- `Ctrl` + mouse wheel scroll: zoom in/out
 - Resolution button in the bottom bar: open dialog for resolution input
 
 ### Switch entry/sample
 
-- `Ctrl` + mouse wheel scroll: go to previous/next entry
+- Mouse wheel scroll: go to previous/next entry
 - `Up`/`Down`: go to previous/next entry
 - `<`/`>` buttons in the bottom bar: go to previous/next entry
 - `Alt` + mouse wheel scroll: go to previous/next sample
