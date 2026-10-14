@@ -9,10 +9,10 @@ import com.sdercolin.vlabeler.model.key.KeySet
  * @property keySet The key set that triggers this action.
  */
 enum class MouseScrollAction(val keySet: KeySet) {
-    GoToNextSample(KeySet(Key.MouseScrollDown, setOf(Key.Shift, Key.Ctrl))),
-    GoToPreviousSample(KeySet(Key.MouseScrollUp, setOf(Key.Shift, Key.Ctrl))),
-    GoToNextEntry(KeySet(Key.MouseScrollDown, setOf(Key.Shift))),
-    GoToPreviousEntry(KeySet(Key.MouseScrollUp, setOf(Key.Shift))),
+    GoToNextSample(KeySet(Key.MouseScrollDown, setOf(Key.Alt))),
+    GoToPreviousSample(KeySet(Key.MouseScrollUp, setOf(Key.Alt))),
+    GoToNextEntry(KeySet(Key.MouseScrollDown, setOf(Key.Ctrl))),
+    GoToPreviousEntry(KeySet(Key.MouseScrollUp, setOf(Key.Ctrl))),
     ZoomInCanvas(KeySet(Key.MouseScrollUp)),
     ZoomOutCanvas(KeySet(Key.MouseScrollDown)),
 }

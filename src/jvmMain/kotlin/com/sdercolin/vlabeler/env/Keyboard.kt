@@ -128,11 +128,9 @@ data class KeyboardState(
     fun getEnabledMouseScrollAction(pointerEvent: PointerEvent): MouseScrollAction? {
         if (pointerEvent.type != PointerEventType.Scroll) return null
         val mainKey = pointerEvent.toVirtualKey() ?: return null
-        val subKeys = keySet?.subKeys.orEmpty()
-        // AWT marks a horizontal wheel with Shift even when Shift is not pressed, so only a physically held Shift
-        // keeps a horizontal event bound to zoom. Other horizontal events only scroll the canvas.
-        if (pointerEvent.isHorizontalScroll && Key.Shift !in subKeys) return null
-        return MouseScrollAction.entries.firstOrNull { it.keySet == KeySet(mainKey, subKeys) }
+        // Compose reports Shift + wheel and horizontal wheels on the x axis. They only pan the canvas.
+        if (pointerEvent.isHorizontalScroll) return null
+        return MouseScrollAction.entries.firstOrNull { it.keySet == KeySet(mainKey, keySet?.subKeys.orEmpty()) }
     }
 }
 

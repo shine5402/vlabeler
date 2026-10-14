@@ -26,10 +26,9 @@ Some UI elements may be different in the latest version.
 This fork ([shine5402/vlabeler](https://github.com/shine5402/vlabeler)) is based on `1.7.0-beta2`. The following changes
 are not part of upstream.
 
-- The mouse wheel zooms by default. `Shift` + mouse wheel switches entries, and `Ctrl` + `Shift` + mouse wheel switches
-  samples.
-- Horizontal mouse wheel and trackpad horizontal swipes only scroll the canvas. They never switch entries or change the
-  zoom.
+- The mouse wheel zooms by default. `Ctrl` + mouse wheel switches entries, and `Alt` + mouse wheel switches samples.
+- `Shift` + mouse wheel, horizontal mouse wheel and trackpad horizontal swipes only scroll the canvas. They never switch
+  entries or change the zoom.
 - Mouse wheel actions are fixed presets and cannot be customized. The `Mouse scroll actions` page in `Keymap` has been
   removed. Mouse click key bindings can still be customized. Old mouse scroll settings are ignored.
 - Precise wheels (touchpads, high-resolution mice) are accumulated, so an action fires once per notch and small
@@ -189,7 +188,7 @@ Please also see the section of the [Playback tool](#playback) for more actions.
 
 ### Scrolling
 
-- Horizontal mouse wheel / trackpad swipe: horizontal scroll
+- `Shift` + mouse wheel scroll, or horizontal mouse wheel / trackpad swipe: horizontal scroll
 - `F` or Focus button in the center of the bottom bar: Scroll to center the current entry on the screen
 
 ### Zoom in/out
@@ -201,10 +200,10 @@ Please also see the section of the [Playback tool](#playback) for more actions.
 
 ### Switch entry/sample
 
-- `Shift` + mouse wheel scroll: go to previous/next entry
+- `Ctrl` + mouse wheel scroll: go to previous/next entry
 - `Up`/`Down`: go to previous/next entry
 - `<`/`>` buttons in the bottom bar: go to previous/next entry
-- `Ctrl` + `Shift` + mouse wheel scroll: go to previous/next sample
+- `Alt` + mouse wheel scroll: go to previous/next sample
 - `Ctrl` + `Up`/`Down`: go to previous/next sample
 - `<<`/`>>` buttons in the bottom bar: go to previous/next sample
 - `Ctrl` + `G` or entry number button in the bottom bar: show `Go to entry...` dialog
