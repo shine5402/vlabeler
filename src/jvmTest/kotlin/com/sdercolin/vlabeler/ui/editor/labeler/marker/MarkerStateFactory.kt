@@ -1,5 +1,6 @@
 package com.sdercolin.vlabeler.ui.editor.labeler.marker
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import com.sdercolin.vlabeler.model.Entry
 import com.sdercolin.vlabeler.model.LabelerConf
@@ -52,6 +53,9 @@ object MarkerStateFactory {
      * @param editedIndexes indexes in [allEntries] that are being edited (all of them by default).
      * @param currentIndex the module's current entry index (the first edited entry by default).
      * @param parallelModules additional modules that are parallel to the current module (sharing the raw label file).
+     * @param editedEntriesInPixelOverride the displayed entries, when they differ from the committed ones (e.g. in
+     *     the middle of a drag, or when the committed snapshot is stale).
+     * @param existingCursorState the cursor state to keep, to continue an ongoing drag across frames.
      */
     fun create(
         labelerConf: LabelerConf,
@@ -63,6 +67,7 @@ object MarkerStateFactory {
         sampleLengthMillis: Float = DEFAULT_SAMPLE_LENGTH_MILLIS,
         parallelModules: List<Module> = emptyList(),
         editedEntriesInPixelOverride: List<EntryInPixel>? = null,
+        existingCursorState: MutableState<MarkerCursorState>? = null,
     ): MarkerState {
         val module = Module(
             name = "main",
@@ -119,7 +124,7 @@ object MarkerStateFactory {
             entriesInSampleInPixel = entriesInSampleInPixel,
             leftBorder = leftBorder,
             rightBorder = rightBorder,
-            cursorState = mutableStateOf(MarkerCursorState()),
+            cursorState = existingCursorState ?: mutableStateOf(MarkerCursorState()),
             scissorsState = mutableStateOf(null),
             panState = mutableStateOf(null),
             playbackState = mutableStateOf(null),
@@ -132,7 +137,8 @@ object MarkerStateFactory {
 
     /**
      * Simulates the next mouse-move frame within the same drag gesture: updates [MarkerState.entriesInPixel] to
-     * [updated] while keeping `entriesInSampleInPixel` at the pre-drag values.
+     * [updated] while keeping `entriesInSampleInPixel` at the pre-drag values and the cursor state (including the
+     * gesture start snapshot) as it is.
      */
     fun continueDrag(previous: MarkerState, updated: List<EntryInPixel>): MarkerState = create(
         labelerConf = previous.labelerConf,
@@ -140,5 +146,6 @@ object MarkerStateFactory {
         editedIndexes = previous.entries.map { it.index },
         sampleLengthMillis = previous.sampleLengthMillis,
         editedEntriesInPixelOverride = updated,
+        existingCursorState = previous.cursorState,
     )
 }

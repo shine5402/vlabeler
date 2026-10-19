@@ -356,7 +356,11 @@ class MarkerState(
         isStartPoint: Boolean,
     ) {
         val entry = entries[entryIndex]
-        val preDragEntry = entriesInSampleInPixel.find { it.index == entry.index } ?: entry
+        // the anchor of an elastic push must be the value at the start of this drag gesture: the entries held by
+        // the state may be from an older gesture when the drag was started before them being refreshed
+        val preDragEntry = cursorState.value.preDragEntries.find { it.index == entry.index }
+            ?: entriesInSampleInPixel.find { it.index == entry.index }
+            ?: entry
         val constraints = labelerConf.resolvedConstraints
 
         val lowerBounds = constraints.filter { it.second == targetPoint }.flatMap { c ->
@@ -711,7 +715,9 @@ fun rememberMarkerState(
     val sampleLengthMillis = sampleInfo.lengthMillis
     val entries = editorState.editedEntries
     val project = editorState.project
-    val allEntriesInCurrentGroup = remember(entries, project.currentModuleIndex) {
+    // keyed on the whole project, not just the current module index: committing an edition can leave `entries`
+    // structurally unchanged (so its remember key does not change), while the module's entries did change
+    val allEntriesInCurrentGroup = remember(entries, project) {
         project.currentModule.getEntriesInGroupForEditing()
     }
     val labelerConf = project.labelerConf

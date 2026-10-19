@@ -24,14 +24,26 @@ data class MarkerCursorState(
      * During dragging, the index offset between the dragging point and the point index.
      */
     val relativeDraggingIndexOffset: Int? = null,
+    /**
+     * The entries as they were when the current dragging started. Used as the anchor of elastic pushes, so that
+     * a point pushed by the dragged one returns to its value at the start of the gesture.
+     */
+    val preDragEntries: List<EntryInPixel> = listOf(),
 ) {
 
-    fun startDragging(lockedDrag: Boolean, withPreview: Boolean, forcedDrag: Boolean, cascadingDrag: Boolean) = copy(
+    fun startDragging(
+        lockedDrag: Boolean,
+        withPreview: Boolean,
+        forcedDrag: Boolean,
+        cascadingDrag: Boolean,
+        preDragEntries: List<EntryInPixel> = listOf(),
+    ) = copy(
         mouse = Mouse.Dragging,
         lockedDrag = lockedDrag,
         previewOnDragging = withPreview,
         forcedDrag = forcedDrag,
         cascadingDrag = cascadingDrag,
+        preDragEntries = preDragEntries,
         relativeDraggingIndexOffset = if (pointPosition != null && position != null) {
             if (position - pointPosition > 0) {
                 1
@@ -48,6 +60,7 @@ data class MarkerCursorState(
         lockedDrag = false,
         cascadingDrag = false,
         relativeDraggingIndexOffset = null,
+        preDragEntries = listOf(),
     )
 
     fun moveToNothing() = copy(

@@ -720,7 +720,9 @@ private fun MarkerState.handleCursorPress(
                 AppConf.Editor.CascadedDrag.Enabled ->
                     action != MouseClickAction.MoveParameterInvertingCascaded
             } && !forcedDrag
-            cursorState.update { startDragging(lockedDrag, withPreview, forcedDrag, cascadingDrag) }
+            cursorState.update {
+                startDragging(lockedDrag, withPreview, forcedDrag, cascadingDrag, preDragEntries = entriesInPixel)
+            }
         }
     }
 }

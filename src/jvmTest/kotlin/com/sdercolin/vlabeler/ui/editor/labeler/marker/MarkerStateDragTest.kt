@@ -1,5 +1,6 @@
 package com.sdercolin.vlabeler.ui.editor.labeler.marker
 
+import com.sdercolin.vlabeler.model.EntryNotes
 import com.sdercolin.vlabeler.model.LabelerConf
 import com.sdercolin.vlabeler.model.injectLabelerParams
 import com.sdercolin.vlabeler.util.toParamMap
@@ -467,6 +468,72 @@ class MarkerStateDragTest {
             state.entry(0).copy(start = 90f, end = 90f, points = listOf(90f, 90f, 90f, 90f)),
             result[0],
         )
+    }
+
+    // endregion
+
+    // region drag anchor
+
+    @Test
+    fun pushAnchorIsTheGestureStartValuesSoATouchedNeighborDoesNotJumpOnTheNextGesture() {
+        // The committed entries held by the state as the push anchor can be stale: committing an edition that leaves
+        // the edited entries structurally unchanged does not reload them, so the state may still hold the entries
+        // from before the previous gesture (see rememberMarkerState). The push must therefore use the values
+        // displayed when the gesture started, otherwise the previously moved point is pulled back to its older value
+        // for a single frame, which looks like a flicker.
+        val state = MarkerStateFactory.create(
+            labelerConf = TestLabelers.utauSinger,
+            // stale committed snapshot: "fixed" is still at 400 here
+            allEntries = listOf(MarkerStateFactory.entry(100f, 600f, points = listOf(400f, 250f, 150f, 100f))),
+            // displayed values after a previous gesture dragged "fixed" from 400 to 500
+            editedEntriesInPixelOverride = listOf(
+                EntryInPixel(
+                    index = 0,
+                    sample = "sample.wav",
+                    name = "entry",
+                    start = 100f,
+                    end = 600f,
+                    points = listOf(500f, 250f, 150f, 100f),
+                    extras = emptyList(),
+                    notes = EntryNotes(),
+                ),
+            ),
+        )
+        // start a gesture like the app does, anchoring on the displayed values
+        state.cursorState.value = state.cursorState.value.startDragging(
+            lockedDrag = false,
+            withPreview = false,
+            forcedDrag = false,
+            cascadingDrag = false,
+            preDragEntries = state.entriesInPixel,
+        )
+
+        // "fixed" (500) and "end" (600) are far apart, so dragging "end" must not move "fixed" at all
+        val result = state.getDraggedEntries(end, 550f, forcedDrag = false)
+        assertEquals(listOf(500f, 250f, 150f, 100f), result[0].points)
+        assertEquals(550f, result[0].end)
+    }
+
+    @Test
+    fun pushAnchorKeepsElasticBehaviorWhenTheGestureAnchorIsProvided() {
+        val state = utauSingerState()
+        state.cursorState.value = state.cursorState.value.startDragging(
+            lockedDrag = false,
+            withPreview = false,
+            forcedDrag = false,
+            cascadingDrag = false,
+            preDragEntries = state.entriesInPixel,
+        )
+
+        // "end" (600) is dragged left past "fixed" (400) to 300: "fixed" follows to 300
+        val pushed = state.getDraggedEntries(end, 300f, forcedDrag = false)
+        assertEquals(listOf(300f, 250f, 150f, 100f), pushed[0].points)
+
+        // dragging "end" back right restores "fixed" to its value at the start of the gesture (400)
+        val nextFrame = MarkerStateFactory.continueDrag(state, pushed)
+        val restored = nextFrame.getDraggedEntries(end, 500f, forcedDrag = false)
+        assertEquals(500f, restored[0].end)
+        assertEquals(listOf(400f, 250f, 150f, 100f), restored[0].points)
     }
 
     // endregion
