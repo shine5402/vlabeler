@@ -178,39 +178,63 @@ class MarkerState(
         when {
             pointIndex == MarkerCursorState.NONE_POINT_INDEX -> Unit
             pointIndex == MarkerCursorState.START_POINT_INDEX -> {
-                val max = if (!labelerConf.useImplicitStart) {
-                    if (forcedDrag) rightBorder - 1 else middlePointsInPixelSorted.firstOrNull() ?: endInPixel
+                if (forcedDrag) {
+                    val max = if (!labelerConf.useImplicitStart) {
+                        rightBorder - 1
+                    } else {
+                        val replacedStartIndex = labelerConf.fields.indexOfFirst { it.replaceStart }
+                        labelerConf.connectedConstraints
+                            .filter { it.first == replacedStartIndex }
+                            .minOfOrNull { entries.first().points[it.second] }
+                            ?: endInPixel
+                    }
+                    val start = x.coerceIn(leftBorder, max)
+                    val firstUpdated = entries.first().setActualStart(labelerConf, start)
+                    entries[0] = firstUpdated
                 } else {
-                    val replacedStartIndex = labelerConf.fields.indexOfFirst { it.replaceStart }
-                    labelerConf.connectedConstraints
-                        .filter { it.first == replacedStartIndex }
-                        .minOfOrNull { entries.first().points[it.second] }
-                        ?: endInPixel
+                    val targetPoint = if (labelerConf.useImplicitStart) {
+                        labelerConf.fields.indexOfFirst { it.replaceStart }
+                    } else {
+                        MarkerCursorState.START_POINT_INDEX
+                    }
+                    dragSingleEntryPoint(
+                        entries = entries,
+                        entryIndex = 0,
+                        targetPoint = targetPoint,
+                        x = x,
+                        isStartPoint = true,
+                    )
                 }
-                val start = x.coerceIn(leftBorder, max).runIf(!forcedDrag) {
-                    snapDrag.update(current = currentEntries.first().getActualStart(labelerConf), max = max)
-                    snapDrag.snap(this)
-                }
-                val firstUpdated = entries.first().setActualStart(labelerConf, start)
-                entries[0] = firstUpdated
             }
             pointIndex == MarkerCursorState.END_POINT_INDEX -> {
-                val min = if (!labelerConf.useImplicitEnd) {
-                    if (forcedDrag) leftBorder else middlePointsInPixelSorted.lastOrNull() ?: startInPixel
+                if (forcedDrag) {
+                    val min = if (!labelerConf.useImplicitEnd) {
+                        leftBorder
+                    } else {
+                        val replacedEndIndex = labelerConf.fields.indexOfFirst { it.replaceEnd }
+                        labelerConf.connectedConstraints
+                            .filter { it.second == replacedEndIndex }
+                            .maxOfOrNull { entries.last().points[it.first] }
+                            ?: startInPixel
+                    }
+                    val max = (rightBorder - 1).coerceAtLeast(min)
+                    val end = x.coerceIn(min, max)
+                    val lastUpdated = entries.last().setActualEnd(labelerConf, end)
+                    entries[entries.lastIndex] = lastUpdated
                 } else {
-                    val replacedEndIndex = labelerConf.fields.indexOfFirst { it.replaceEnd }
-                    labelerConf.connectedConstraints
-                        .filter { it.second == replacedEndIndex }
-                        .maxOfOrNull { entries.last().points[it.first] }
-                        ?: startInPixel
+                    val targetPoint = if (labelerConf.useImplicitEnd) {
+                        labelerConf.fields.indexOfFirst { it.replaceEnd }
+                    } else {
+                        MarkerCursorState.END_POINT_INDEX
+                    }
+                    dragSingleEntryPoint(
+                        entries = entries,
+                        entryIndex = entries.lastIndex,
+                        targetPoint = targetPoint,
+                        x = x,
+                        isStartPoint = false,
+                    )
                 }
-                val max = (rightBorder - 1).coerceAtLeast(min)
-                val end = x.coerceIn(min, max).runIf(!forcedDrag) {
-                    snapDrag.update(current = currentEntries.last().getActualEnd(labelerConf), min = min, max = max)
-                    snapDrag.snap(this)
-                }
-                val lastUpdated = entries.last().setActualEnd(labelerConf, end)
-                entries[entries.lastIndex] = lastUpdated
             }
             isBorderIndex(pointIndex) -> {
                 val (firstEntryIndex, secondEntryIndex) = getEntryIndexesByBorderIndex(pointIndex)
@@ -226,29 +250,21 @@ class MarkerState(
             }
             else -> {
                 val entryIndex = getEntryIndexByPointIndex(pointIndex)
-                val entry = entries[entryIndex]
-                val points = entry.points
-
-                val constraints = labelerConf.connectedConstraints
-                val min = if (forcedDrag) leftBorder else {
-                    constraints.filter { it.second == pointIndex }
-                        .maxOfOrNull { points[it.first] }
-                        ?: if (labelerConf.useImplicitStart) leftBorder else entry.start
+                val pointInsideIndex = getFieldIndexByPointIndex(pointIndex)
+                if (forcedDrag) {
+                    val entry = entries[entryIndex]
+                    val newPoints = entry.points.toMutableList()
+                    newPoints[pointInsideIndex] = x.coerceIn(leftBorder, rightBorder - 1)
+                    entries[entryIndex] = entry.copy(points = newPoints)
+                } else {
+                    dragSingleEntryPoint(
+                        entries = entries,
+                        entryIndex = entryIndex,
+                        targetPoint = pointInsideIndex,
+                        x = x,
+                        isStartPoint = false,
+                    )
                 }
-                val max = if (forcedDrag) rightBorder - 1 else {
-                    constraints.filter { it.first == pointIndex }
-                        .minOfOrNull { points[it.second] }
-                        ?: if (labelerConf.useImplicitEnd) rightBorder - 1 else entry.end
-                }
-                val newPoints = points.toMutableList()
-                val pointInsideIndex = pointIndex % (labelerConf.fields.size + 1)
-                newPoints[pointInsideIndex] = x.coerceIn(min, max).runIf(!forcedDrag) {
-                    val currentPoints = currentEntries[entryIndex].points
-                    snapDrag.update(current = currentPoints[pointInsideIndex], min = min, max = max)
-                    snapDrag.snap(this)
-                }
-                val newEntry = entry.copy(points = newPoints)
-                entries[entryIndex] = newEntry
             }
         }
         if (labelerConf.useImplicitStart) {
@@ -330,6 +346,59 @@ class MarkerState(
             }
         }
         return entries
+    }
+
+    private fun dragSingleEntryPoint(
+        entries: MutableList<EntryInPixel>,
+        entryIndex: Int,
+        targetPoint: Int,
+        x: Float,
+        isStartPoint: Boolean,
+    ) {
+        val entry = entries[entryIndex]
+        val preDragEntry = entriesInSampleInPixel.find { it.index == entry.index } ?: entry
+        val constraints = labelerConf.resolvedConstraints
+
+        val lowerBounds = constraints.filter { it.second == targetPoint }.flatMap { c ->
+            if (!c.pushFirst) {
+                listOf(entry.getPoint(c.first))
+            } else {
+                constraints.filter { it.second == c.first }.map { entry.getPoint(it.first) }
+            }
+        }
+        val min = (lowerBounds + leftBorder).maxOrNull() ?: leftBorder
+
+        val upperBounds = constraints.filter { it.first == targetPoint }.flatMap { c ->
+            if (!c.pushSecond) {
+                listOf(entry.getPoint(c.second))
+            } else {
+                constraints.filter { it.first == c.second }.map { entry.getPoint(it.second) }
+            }
+        }
+        val rawMax = (upperBounds + (rightBorder - 1)).minOrNull() ?: (rightBorder - 1)
+        val max = rawMax.coerceAtLeast(min)
+
+        val newPos = x.coerceIn(min, max).run {
+            snapDrag.update(
+                current = preDragEntry.getPoint(targetPoint),
+                min = min.takeUnless { isStartPoint },
+                max = max,
+            )
+            snapDrag.snap(this)
+        }
+
+        var updatedEntry = entry.setPoint(targetPoint, newPos)
+        for (c in constraints) {
+            if (c.first == targetPoint && c.pushSecond) {
+                val base = (if (c.sticky) entry else preDragEntry).getPoint(c.second)
+                updatedEntry = updatedEntry.setPoint(c.second, maxOf(base, newPos))
+            }
+            if (c.second == targetPoint && c.pushFirst) {
+                val base = (if (c.sticky) entry else preDragEntry).getPoint(c.first)
+                updatedEntry = updatedEntry.setPoint(c.first, minOf(base, newPos))
+            }
+        }
+        entries[entryIndex] = updatedEntry
     }
 
     fun computeCascadeEditions(

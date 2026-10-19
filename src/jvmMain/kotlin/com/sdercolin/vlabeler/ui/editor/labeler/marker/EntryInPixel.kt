@@ -50,6 +50,16 @@ data class EntryInPixel(
         else -> points[index]
     }
 
+    fun setPoint(index: Int, value: Float) = when (index) {
+        START_POINT_INDEX -> copy(start = value)
+        END_POINT_INDEX -> copy(end = value)
+        else -> {
+            val points = points.toMutableList()
+            points[index] = value
+            copy(points = points)
+        }
+    }
+
     fun isValidCutPosition(position: Float) = position > start && position < end
 
     fun collapsed(leftBorder: Float = 0f, rightBorder: Float = Float.POSITIVE_INFINITY): EntryInPixel {

@@ -120,6 +120,38 @@ class LabelerConfTest {
     }
 
     @Test
+    fun `resolvedConstraints include start and end borders and push flags`() {
+        val resolved = labeler.resolvedConstraints.associateBy { it.first to it.second }
+        // fixed (0) <-> end (-1) has bidirectional push enabled and non-sticky by default
+        val fixedToEnd = requireNotNull(resolved[0 to -1])
+        assertTrue(fixedToEnd.pushSecond)
+        assertTrue(fixedToEnd.pushFirst)
+        assertFalse(fixedToEnd.sticky)
+        // left (3) -> fixed (0) does not push
+        val leftToFixed = requireNotNull(resolved[3 to 0])
+        assertFalse(leftToFixed.pushSecond)
+        assertFalse(leftToFixed.pushFirst)
+
+        // explicit start/end labeler resolves useStartAsMin and pushMin
+        val explicitFields = labeler.fields.map { it.copy(replaceStart = false) }.toMutableList()
+        explicitFields[0] = explicitFields[0].copy(
+            constraints = listOf(
+                LabelerConf.Constraint(
+                    useStartAsMin = true,
+                    pushMin = true,
+                    pushedByMin = true,
+                    sticky = true,
+                ),
+            ),
+        )
+        val customConf = labeler.copy(fields = explicitFields)
+        val startToFirst = requireNotNull(customConf.resolvedConstraints.find { it.first == -2 && it.second == 0 })
+        assertTrue(startToFirst.pushFirst)
+        assertTrue(startToFirst.pushSecond)
+        assertTrue(startToFirst.sticky)
+    }
+
+    @Test
     fun `post edit trigger field names are built from the trigger settings`() {
         // oto-labeler: postEditDoneTrigger uses start, end and the fields with triggerPostEditDone == true;
         // postEditNextTrigger is not set anywhere

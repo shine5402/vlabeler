@@ -62,6 +62,7 @@ object MarkerStateFactory {
         resolution: Int = 1,
         sampleLengthMillis: Float = DEFAULT_SAMPLE_LENGTH_MILLIS,
         parallelModules: List<Module> = emptyList(),
+        editedEntriesInPixelOverride: List<EntryInPixel>? = null,
     ): MarkerState {
         val module = Module(
             name = "main",
@@ -87,8 +88,9 @@ object MarkerStateFactory {
         )
         val entryConverter = EntryConverter(sampleRate, resolution)
         val indexedEntries = allEntries.mapIndexed { index, entry -> IndexedEntry(entry, index) }
-        val editedEntries = editedIndexes.map { indexedEntries[it] }
-        val entriesInPixel = editedEntries.map {
+        val editedEntries = editedEntriesInPixelOverride?.map { entryConverter.convertToMillis(it) }
+            ?: editedIndexes.map { indexedEntries[it] }
+        val entriesInPixel = editedEntriesInPixelOverride ?: editedEntries.map {
             entryConverter.convertToPixel(it, sampleLengthMillis).validate(canvasParams.lengthInPixel)
         }
         val entriesInSampleInPixel = indexedEntries.map {
@@ -127,4 +129,16 @@ object MarkerStateFactory {
             project = project,
         )
     }
+
+    /**
+     * Simulates the next mouse-move frame within the same drag gesture: updates [MarkerState.entriesInPixel] to
+     * [updated] while keeping `entriesInSampleInPixel` at the pre-drag values.
+     */
+    fun continueDrag(previous: MarkerState, updated: List<EntryInPixel>): MarkerState = create(
+        labelerConf = previous.labelerConf,
+        allEntries = previous.entriesInCurrentGroup.map { it.entry },
+        editedIndexes = previous.entries.map { it.index },
+        sampleLengthMillis = previous.sampleLengthMillis,
+        editedEntriesInPixelOverride = updated,
+    )
 }

@@ -1,6 +1,8 @@
 package fixtures
 
 import com.sdercolin.vlabeler.env.Log
+import com.sdercolin.vlabeler.model.injectLabelerParams
+import com.sdercolin.vlabeler.util.toParamMap
 import testutil.TestFixtures
 import testutil.TestLabelers
 import testutil.createTestProject
@@ -10,6 +12,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * Smoke test: creates a project from the `oto` fixture with the bundled `oto-labeler` (single oto.ini file mode).
@@ -53,5 +56,28 @@ class UtauOtoProjectFixtureTest {
         assertEquals(450f, entry.start)
         assertEquals(800f, entry.end)
         assertEquals(listOf(570f, 550f, 490f, 450f), entry.points)
+    }
+
+    @Test
+    fun testInjectStickyPushParameters() {
+        val base = TestLabelers.utauOto
+        val params = (
+            base.getDefaultParams() + mapOf(
+                "useNegativeOvl" to false,
+                "keepPushedOverlap" to true,
+                "keepPushedFixedAndRight" to true,
+            )
+            ).toParamMap()
+        val injected = base.injectLabelerParams(params)
+        val resolved = injected.resolvedConstraints.associateBy { it.first to it.second }
+
+        val leftToOvl = requireNotNull(resolved[3 to 2])
+        assertTrue(leftToOvl.pushSecond)
+        assertTrue(leftToOvl.sticky)
+
+        val fixedToEnd = requireNotNull(resolved[0 to -1])
+        assertTrue(fixedToEnd.pushSecond)
+        assertTrue(fixedToEnd.pushFirst)
+        assertTrue(fixedToEnd.sticky)
     }
 }

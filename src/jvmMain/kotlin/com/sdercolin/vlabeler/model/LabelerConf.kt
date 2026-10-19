@@ -10,6 +10,8 @@ import com.sdercolin.vlabeler.model.LabelerConf.Field
 import com.sdercolin.vlabeler.model.LabelerConf.ParameterHolder
 import com.sdercolin.vlabeler.model.LabelerConf.ProjectConstructor
 import com.sdercolin.vlabeler.model.LabelerConf.Property
+import com.sdercolin.vlabeler.ui.editor.labeler.marker.MarkerCursorState.Companion.END_POINT_INDEX
+import com.sdercolin.vlabeler.ui.editor.labeler.marker.MarkerCursorState.Companion.START_POINT_INDEX
 import com.sdercolin.vlabeler.ui.string.*
 import com.sdercolin.vlabeler.util.CustomLabelerDir
 import com.sdercolin.vlabeler.util.DefaultLabelerDir
@@ -154,6 +156,77 @@ data class LabelerConf(
             .distinct()
 
     /**
+     * Get resolved constraints including start/end borders and push behaviors for canvas usage.
+     */
+    val resolvedConstraints: List<ResolvedConstraint>
+        get() {
+            val effectiveStartIndex = if (useImplicitStart) {
+                fields.indexOfFirst { it.replaceStart }
+            } else {
+                START_POINT_INDEX
+            }
+            val effectiveEndIndex = if (useImplicitEnd) {
+                fields.indexOfFirst { it.replaceEnd }
+            } else {
+                END_POINT_INDEX
+            }
+            val explicit = fields.withIndex().flatMap { (fieldIndex, field) ->
+                field.constraints.flatMap { constraint ->
+                    val minTarget = constraint.min ?: effectiveStartIndex.takeIf { constraint.useStartAsMin }
+                    val minConstraint = minTarget?.takeIf { it != fieldIndex }?.let {
+                        val pushSecond = constraint.pushedByMin
+                        val pushFirst = constraint.pushMin
+                        ResolvedConstraint(
+                            first = it,
+                            second = fieldIndex,
+                            pushSecond = pushSecond,
+                            pushFirst = pushFirst,
+                            sticky = constraint.sticky && (pushSecond || pushFirst),
+                        )
+                    }
+                    val maxTarget = constraint.max ?: effectiveEndIndex.takeIf { constraint.useEndAsMax }
+                    val maxConstraint = maxTarget?.takeIf { it != fieldIndex }?.let {
+                        val pushSecond = constraint.pushMax
+                        val pushFirst = constraint.pushedByMax
+                        ResolvedConstraint(
+                            first = fieldIndex,
+                            second = it,
+                            pushSecond = pushSecond,
+                            pushFirst = pushFirst,
+                            sticky = constraint.sticky && (pushSecond || pushFirst),
+                        )
+                    }
+                    listOfNotNull(minConstraint, maxConstraint)
+                }
+            }
+            val implicitStart = if (!useImplicitStart) {
+                fields.indices.map { ResolvedConstraint(first = START_POINT_INDEX, second = it) }
+            } else {
+                emptyList()
+            }
+            val implicitEnd = if (!useImplicitEnd) {
+                fields.indices.map { ResolvedConstraint(first = it, second = END_POINT_INDEX) }
+            } else {
+                emptyList()
+            }
+            val startToEnd = listOfNotNull(
+                ResolvedConstraint(first = effectiveStartIndex, second = effectiveEndIndex)
+                    .takeIf { effectiveStartIndex != effectiveEndIndex },
+            )
+            return (explicit + implicitStart + implicitEnd + startToEnd)
+                .groupBy { it.first to it.second }
+                .map { (pair, list) ->
+                    ResolvedConstraint(
+                        first = pair.first,
+                        second = pair.second,
+                        pushSecond = list.any { it.pushSecond },
+                        pushFirst = list.any { it.pushFirst },
+                        sticky = list.any { it.sticky },
+                    )
+                }
+        }
+
+    /**
      * Get names of all fields that could trigger `Mark as done` after editing.
      */
     val postEditDoneTriggerFieldNames
@@ -210,17 +283,52 @@ data class LabelerConf(
     )
 
     /**
-     * Except for "start" and "end" (all fields should be between "start" and "end"). You don't have to declare the same
-     * constraint in both two fields.
+     * Except for "start" and "end" (all fields should be between "start" and "end"), unless [useStartAsMin] or
+     * [useEndAsMax] is set to configure push behaviors with the entry's start or end border. You don't have to declare
+     * the same constraint in both two fields.
      *
      * @property min Index of the field that should be smaller or equal to this field.
      * @property max Index of the field that should be greater or equal to this field.
+     * @property useStartAsMin True if this constraint configures push behaviors between the entry's start border and
+     *     this field.
+     * @property useEndAsMax True if this constraint configures push behaviors between this field and the entry's end
+     *     border.
+     * @property pushMin True if dragging this field to the left past its min point pushes the min point along.
+     * @property pushedByMin True if dragging the min point to the right past this field pushes this field along.
+     * @property pushMax True if dragging this field to the right past its max point pushes the max point along.
+     * @property pushedByMax True if dragging the max point to the left past this field pushes this field along.
+     * @property sticky True if the pushed point stays at its pushed position when the dragged point is dragged back.
      */
     @Serializable
     @Immutable
     data class Constraint(
         val min: Int? = null,
         val max: Int? = null,
+        val useStartAsMin: Boolean = false,
+        val useEndAsMax: Boolean = false,
+        val pushMin: Boolean = false,
+        val pushedByMin: Boolean = false,
+        val pushMax: Boolean = false,
+        val pushedByMax: Boolean = false,
+        val sticky: Boolean = false,
+    )
+
+    /**
+     * Normalized constraint between two points in an entry, where [first] <= [second].
+     *
+     * @property first Index of the left point ([START_POINT_INDEX], [END_POINT_INDEX], or 0..fields.lastIndex).
+     * @property second Index of the right point ([START_POINT_INDEX], [END_POINT_INDEX], or 0..fields.lastIndex).
+     * @property pushSecond True if dragging [first] to the right can push [second] to the right.
+     * @property pushFirst True if dragging [second] to the left can push [first] to the left.
+     * @property sticky True if pushing between [first] and [second] is sticky during a drag gesture.
+     */
+    @Immutable
+    data class ResolvedConstraint(
+        val first: Int,
+        val second: Int,
+        val pushSecond: Boolean = false,
+        val pushFirst: Boolean = false,
+        val sticky: Boolean = false,
     )
 
     /**

@@ -79,12 +79,17 @@ class EntryInPixelTest {
     }
 
     @Test
-    fun getPointResolvesStartEndAndFieldIndexes() {
+    fun getPointAndSetPointResolveStartEndAndFieldIndexes() {
         val target = entry(start = 100f, end = 600f, points = listOf(400f, 250f))
         assertEquals(100f, target.getPoint(MarkerCursorState.START_POINT_INDEX))
         assertEquals(600f, target.getPoint(MarkerCursorState.END_POINT_INDEX))
         assertEquals(400f, target.getPoint(0))
         assertEquals(250f, target.getPoint(1))
+
+        assertEquals(120f, target.setPoint(MarkerCursorState.START_POINT_INDEX, 120f).start)
+        assertEquals(580f, target.setPoint(MarkerCursorState.END_POINT_INDEX, 580f).end)
+        assertEquals(listOf(420f, 250f), target.setPoint(0, 420f).points)
+        assertEquals(listOf(400f, 270f), target.setPoint(1, 270f).points)
     }
 
     @Test

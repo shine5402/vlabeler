@@ -1,6 +1,10 @@
 package com.sdercolin.vlabeler.ui.editor.labeler.marker
 
+import com.sdercolin.vlabeler.model.LabelerConf
+import com.sdercolin.vlabeler.model.injectLabelerParams
+import com.sdercolin.vlabeler.util.toParamMap
 import org.junit.jupiter.api.Test
+import testutil.TestEnv
 import testutil.TestLabelers
 import kotlin.test.assertEquals
 
@@ -40,12 +44,19 @@ class MarkerStateDragTest {
         editedIndexes = listOf(1),
     )
 
-    private fun utauSingerState() = MarkerStateFactory.create(
-        labelerConf = TestLabelers.utauSinger,
+    private fun utauSingerState(labelerConf: LabelerConf = TestLabelers.utauSinger) = MarkerStateFactory.create(
+        labelerConf = labelerConf,
         allEntries = listOf(
             MarkerStateFactory.entry(100f, 600f, points = listOf(400f, 250f, 150f, 100f)),
         ),
     )
+
+    private fun utauSingerConfWithParams(params: Map<String, Any>): LabelerConf {
+        TestEnv.ensureLogDirectory()
+        val base = TestLabelers.utauSinger
+        val fullParams = (base.getDefaultParams() + params).toParamMap()
+        return base.injectLabelerParams(fullParams)
+    }
 
     private fun MarkerState.entry(index: Int) = entriesInPixel[index]
 
@@ -271,21 +282,157 @@ class MarkerStateDragTest {
     }
 
     @Test
-    fun draggingFieldPointWithoutUpperConstraintIsClampedByEntryEnd() {
-        val state = utauSingerState()
-        // "fixed" has no upper field constraint, and the labeler has no implicit end, so the max is end (600)
+    fun draggingFieldPointWithoutUpperConstraintIsClampedByEntryEndWhenPushDisabled() {
+        val noPushConf = TestLabelers.utauSinger.let { conf ->
+            val fixed = conf.fields[0].copy(
+                constraints = listOf(LabelerConf.Constraint(min = 3)),
+            )
+            conf.copy(fields = listOf(fixed) + conf.fields.drop(1))
+        }
+        val state = utauSingerState(noPushConf)
+        // "fixed" has no upper field constraint and pushMax is false, so the max is end (600)
         val result = state.getDraggedEntries(0, 700f, forcedDrag = false)
         assertEquals(listOf(600f, 250f, 150f, 100f), result[0].points)
     }
 
     @Test
-    fun draggingEndIsClampedByLastMiddlePointInSingleEntryMode() {
-        val state = utauSingerState()
+    fun draggingEndIsClampedByLastMiddlePointWhenPushDisabled() {
+        val noPushConf = TestLabelers.utauSinger.let { conf ->
+            val fixed = conf.fields[0].copy(
+                constraints = listOf(LabelerConf.Constraint(min = 3)),
+            )
+            conf.copy(fields = listOf(fixed) + conf.fields.drop(1))
+        }
+        val state = utauSingerState(noPushConf)
         val moved = state.getDraggedEntries(end, 550f, forcedDrag = false)
         assertEquals(550f, moved[0].end)
-        // "fixed" (400) is the largest middle point
+        // "fixed" (400) is the largest middle point and pushedByMax is false
         val clamped = state.getDraggedEntries(end, 300f, forcedDrag = false)
         assertEquals(400f, clamped[0].end)
+    }
+
+    @Test
+    fun draggingFixedPastEndPushesEndAndRestoresOnDragBackByDefault() {
+        val state = utauSingerState()
+        // "fixed" (400) is dragged past "end" (600) to 700: both move to 700
+        val pushed = state.getDraggedEntries(0, 700f, forcedDrag = false)
+        assertEquals(listOf(700f, 250f, 150f, 100f), pushed[0].points)
+        assertEquals(700f, pushed[0].end)
+
+        // dragging back to 650 within the same drag brings "end" back to 650
+        val state2 = MarkerStateFactory.continueDrag(state, pushed)
+        val pulledBack = state2.getDraggedEntries(0, 650f, forcedDrag = false)
+        assertEquals(listOf(650f, 250f, 150f, 100f), pulledBack[0].points)
+        assertEquals(650f, pulledBack[0].end)
+
+        // dragging back below the original "end" (600) stops "end" at 600
+        val state3 = MarkerStateFactory.continueDrag(state, pulledBack)
+        val restored = state3.getDraggedEntries(0, 500f, forcedDrag = false)
+        assertEquals(listOf(500f, 250f, 150f, 100f), restored[0].points)
+        assertEquals(600f, restored[0].end)
+    }
+
+    @Test
+    fun draggingFixedPastEndKeepsPushedEndWhenStickyEnabled() {
+        val conf = utauSingerConfWithParams(mapOf("keepPushedFixedAndRight" to true))
+        val state = utauSingerState(conf)
+        val pushed = state.getDraggedEntries(0, 700f, forcedDrag = false)
+        assertEquals(listOf(700f, 250f, 150f, 100f), pushed[0].points)
+        assertEquals(700f, pushed[0].end)
+
+        // dragging "fixed" back to 500 keeps "end" at the pushed position (700)
+        val state2 = MarkerStateFactory.continueDrag(state, pushed)
+        val draggedBack = state2.getDraggedEntries(0, 500f, forcedDrag = false)
+        assertEquals(listOf(500f, 250f, 150f, 100f), draggedBack[0].points)
+        assertEquals(700f, draggedBack[0].end)
+    }
+
+    @Test
+    fun draggingEndPastFixedPushesFixedAndClampsAtPreu() {
+        val state = utauSingerState()
+        // "end" (600) is dragged left past "fixed" (400) to 300: both move to 300
+        val pushed = state.getDraggedEntries(end, 300f, forcedDrag = false)
+        assertEquals(300f, pushed[0].end)
+        assertEquals(listOf(300f, 250f, 150f, 100f), pushed[0].points)
+
+        // dragging further left to 200 is clamped by "preu" (250)
+        val state2 = MarkerStateFactory.continueDrag(state, pushed)
+        val clamped = state2.getDraggedEntries(end, 200f, forcedDrag = false)
+        assertEquals(250f, clamped[0].end)
+        assertEquals(listOf(250f, 250f, 150f, 100f), clamped[0].points)
+
+        // dragging back right to 350 brings "fixed" back to 350, and to 500 restores "fixed" to 400
+        val state3 = MarkerStateFactory.continueDrag(state, clamped)
+        val partialRestore = state3.getDraggedEntries(end, 350f, forcedDrag = false)
+        assertEquals(350f, partialRestore[0].end)
+        assertEquals(listOf(350f, 250f, 150f, 100f), partialRestore[0].points)
+
+        val state4 = MarkerStateFactory.continueDrag(state, partialRestore)
+        val fullRestore = state4.getDraggedEntries(end, 500f, forcedDrag = false)
+        assertEquals(500f, fullRestore[0].end)
+        assertEquals(listOf(400f, 250f, 150f, 100f), fullRestore[0].points)
+    }
+
+    @Test
+    fun draggingEndPastFixedKeepsPushedFixedWhenStickyEnabled() {
+        val conf = utauSingerConfWithParams(mapOf("keepPushedFixedAndRight" to true))
+        val state = utauSingerState(conf)
+        val pushed = state.getDraggedEntries(end, 300f, forcedDrag = false)
+        assertEquals(300f, pushed[0].end)
+        assertEquals(listOf(300f, 250f, 150f, 100f), pushed[0].points)
+
+        // dragging "end" back right to 500 keeps "fixed" at 300
+        val state2 = MarkerStateFactory.continueDrag(state, pushed)
+        val draggedBack = state2.getDraggedEntries(end, 500f, forcedDrag = false)
+        assertEquals(500f, draggedBack[0].end)
+        assertEquals(listOf(300f, 250f, 150f, 100f), draggedBack[0].points)
+    }
+
+    @Test
+    fun draggingLeftWhenNegativeOvlDisabledPushesOvlAndRestoresOnDragBack() {
+        val conf = utauSingerConfWithParams(mapOf("useNegativeOvl" to false))
+        val state = utauSingerState(conf)
+        // "left" (100) is dragged past "ovl" (150) to 200: both move to 200
+        val pushed = state.getDraggedEntries(start, 200f, forcedDrag = false)
+        assertEquals(listOf(400f, 250f, 200f, 200f), pushed[0].points)
+        assertEquals(200f, pushed[0].start)
+
+        // dragging further right to 300 is clamped by "preu" (250)
+        val state2 = MarkerStateFactory.continueDrag(state, pushed)
+        val clamped = state2.getDraggedEntries(start, 300f, forcedDrag = false)
+        assertEquals(listOf(400f, 250f, 250f, 250f), clamped[0].points)
+        assertEquals(250f, clamped[0].start)
+
+        // dragging back left to 180 brings "ovl" back to 180, and to 120 restores "ovl" to 150
+        val state3 = MarkerStateFactory.continueDrag(state, clamped)
+        val partialRestore = state3.getDraggedEntries(start, 180f, forcedDrag = false)
+        assertEquals(listOf(400f, 250f, 180f, 180f), partialRestore[0].points)
+        assertEquals(180f, partialRestore[0].start)
+
+        val state4 = MarkerStateFactory.continueDrag(state, partialRestore)
+        val fullRestore = state4.getDraggedEntries(start, 120f, forcedDrag = false)
+        assertEquals(listOf(400f, 250f, 150f, 120f), fullRestore[0].points)
+        assertEquals(120f, fullRestore[0].start)
+
+        // dragging "ovl" (index 2) to the left of "left" (100) is still clamped at "left" (does not push "left")
+        val ovlClamped = state.getDraggedEntries(2, 50f, forcedDrag = false)
+        assertEquals(listOf(400f, 250f, 100f, 100f), ovlClamped[0].points)
+    }
+
+    @Test
+    fun draggingLeftWhenNegativeOvlDisabledKeepsPushedOvlWhenStickyEnabled() {
+        val conf = utauSingerConfWithParams(
+            mapOf("useNegativeOvl" to false, "keepPushedOverlap" to true),
+        )
+        val state = utauSingerState(conf)
+        val pushed = state.getDraggedEntries(start, 200f, forcedDrag = false)
+        assertEquals(listOf(400f, 250f, 200f, 200f), pushed[0].points)
+
+        // dragging "left" back to 120 keeps "ovl" at 200
+        val state2 = MarkerStateFactory.continueDrag(state, pushed)
+        val draggedBack = state2.getDraggedEntries(start, 120f, forcedDrag = false)
+        assertEquals(listOf(400f, 250f, 200f, 120f), draggedBack[0].points)
+        assertEquals(120f, draggedBack[0].start)
     }
 
     @Test

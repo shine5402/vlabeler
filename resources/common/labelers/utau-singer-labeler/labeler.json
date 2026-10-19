@@ -1,6 +1,6 @@
 {
     "name": "utau-singer.default",
-    "version": 27,
+    "version": 28,
     "serialVersion": 3,
     "singleFile": false,
     "extension": "ini",
@@ -45,7 +45,11 @@
             "constraints": [
                 {
                     "min": 3,
-                    "max": null
+                    "max": null,
+                    "useEndAsMax": true,
+                    "pushMax": true,
+                    "pushedByMax": true,
+                    "sticky": false
                 }
             ],
             "shortcutIndex": 3,
@@ -87,7 +91,9 @@
             "constraints": [
                 {
                     "min": null,
-                    "max": 0
+                    "max": 0,
+                    "pushedByMin": true,
+                    "sticky": false
                 }
             ],
             "shortcutIndex": 1,
@@ -239,6 +245,48 @@
                 "defaultValue": true
             },
             "injector": "useNegativeOvl-injector.js",
+            "changeable": true
+        },
+        {
+            "parameter": {
+                "type": "boolean",
+                "name": "keepPushedOverlap",
+                "label": {
+                    "en": "Keep pushed overlap when dragging offset back",
+                    "zh": "左边界挤压重叠时保持挤压结果",
+                    "ja": "左ブランクでオーバーラップを押し出した位置を維持する",
+                    "ko": "오프셋으로 밀어낸 오버랩 위치 유지하기"
+                },
+                "description": {
+                    "en": "When negative overlap is disallowed, dragging offset past overlap pushes overlap along. If enabled, overlap stays at the pushed position when dragging offset back.",
+                    "zh": "禁用“允许重叠为负值”时，向右拖动左边界越过重叠会带动重叠一起移动。启用此项后，在同一次拖动中将左边界往回拖时，重叠将保持在被推到的位置而不恢复原值。",
+                    "ja": "「オーバーラップのマイナス値を許容する」が無効な場合、左ブランクをオーバーラップより右へドラッグするとオーバーラップも一緒に移動します。これを有効にすると、ドラッグ中に左ブランクを戻してもオーバーラップは押し出された位置に留まります。",
+                    "ko": "오버랩 음수값 허용이 꺼져 있을 때 오프셋을 오버랩 너머로 드래그하면 오버랩이 함께 밀려납니다. 이 옵션을 켜면 드래그 도중 오프셋을 되돌려도 오버랩이 밀려난 위치에 그대로 유지됩니다."
+                },
+                "defaultValue": false
+            },
+            "injector": "keepPushedOverlap-injector.js",
+            "changeable": true
+        },
+        {
+            "parameter": {
+                "type": "boolean",
+                "name": "keepPushedFixedAndRight",
+                "label": {
+                    "en": "Keep pushed position between fixed and cutoff",
+                    "zh": "右边界与固定范围互相挤压时保持挤压结果",
+                    "ja": "右ブランクと固定範囲の押し出し位置を維持する",
+                    "ko": "컷오프와 고정자음부가 서로 밀어낸 위치 유지하기"
+                },
+                "description": {
+                    "en": "Dragging cutoff past fixed or dragging fixed past cutoff pushes the other along. If enabled, the pushed parameter stays at the pushed position when dragging back.",
+                    "zh": "拖动右边界越过固定范围，或拖动固定范围越过右边界时，会带动对方一起移动。启用此项后，在同一次拖动中往回拖时，被推动的参数将保持在被推到的位置而不恢复原值。",
+                    "ja": "右ブランクと固定範囲を互いを超えてドラッグすると、もう一方も一緒に移動します。これを有効にすると、ドラッグ中に戻しても押し出されたパラメータはその位置に留まります。",
+                    "ko": "컷오프와 고정자음부를 서로의 위치 너머로 드래그하면 다른 쪽이 함께 밀려납니다. 이 옵션을 켜면 드래그 도중 되돌려도 밀려난 파라미터가 그 위치에 그대로 유지됩니다."
+                },
+                "defaultValue": false
+            },
+            "injector": "keepPushedFixedAndRight-injector.js",
             "changeable": true
         },
         {

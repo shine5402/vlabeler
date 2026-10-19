@@ -294,15 +294,28 @@ object is in the following format:
 ```json
 {
     "min": 1,
-    "max": 2
+    "max": 2,
+    "useStartAsMin": false,
+    "useEndAsMax": false,
+    "pushMin": false,
+    "pushedByMin": false,
+    "pushMax": false,
+    "pushedByMax": false,
+    "sticky": false
 }
 ```
 
 - `min`: Index of the field that should be smaller or equal to this field. (Optional)
 - `max`: Index of the field that should be larger or equal to this field. (Optional)
+- `useStartAsMin`: Whether the `start` border (or the field with `replaceStart` set to `true`) is used as the `min` point of this constraint. Defaults to `false`.
+- `useEndAsMax`: Whether the `end` border (or the field with `replaceEnd` set to `true`) is used as the `max` point of this constraint. Defaults to `false`.
+- `pushMin`: Whether dragging this field to the left past its `min` point pushes the `min` point along. Defaults to `false`.
+- `pushedByMin`: Whether dragging the `min` point to the right past this field pushes this field along. Defaults to `false`.
+- `pushMax`: Whether dragging this field to the right past its `max` point pushes the `max` point along. Defaults to `false`.
+- `pushedByMax`: Whether dragging the `max` point to the left past this field pushes this field along. Defaults to `false`.
+- `sticky`: When a point is pushed by this constraint, whether it stays at the pushed position when the dragged point is dragged back during the same drag gesture. Defaults to `false` (the pushed point returns toward its initial position when dragged back).
 
-The standard fields `start` and `end` should not be considered here, because all fields should be between `start` and
-`end`.
+The standard fields `start` and `end` do not need to be declared in `constraints` unless you want to configure push behaviors with them via `useStartAsMin` or `useEndAsMax`, because all fields are between `start` and `end` by default.
 
 For every constraint, you don't need to set it in both fields. For example, when we have two
 fields `["field1", "field2"]`,
