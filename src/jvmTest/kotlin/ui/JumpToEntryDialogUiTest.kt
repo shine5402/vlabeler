@@ -1,7 +1,9 @@
 package ui
 
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.runComposeUiTest
 import com.sdercolin.vlabeler.env.Log
 import com.sdercolin.vlabeler.model.AppConf
@@ -10,6 +12,7 @@ import com.sdercolin.vlabeler.model.Module
 import com.sdercolin.vlabeler.model.Project
 import com.sdercolin.vlabeler.ui.dialog.JumpToEntryDialog
 import com.sdercolin.vlabeler.ui.dialog.JumpToEntryDialogArgs
+import com.sdercolin.vlabeler.ui.editor.EntryList
 import com.sdercolin.vlabeler.ui.editor.EntryListFilterState
 import com.sdercolin.vlabeler.ui.editor.EntryListState
 import com.sdercolin.vlabeler.ui.theme.AppTheme
@@ -18,6 +21,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 /**
  * [JumpToEntryDialog] is a thin wrapper around [com.sdercolin.vlabeler.ui.editor.EntryList] which drives selection
@@ -93,6 +97,40 @@ class JumpToEntryDialogUiTest {
             enableContextMenu = false,
         )
         assertEquals(listOf(2), state.searchResult.map { it.index })
+    }
+
+    @Test
+    fun testFilteringOutCurrentEntryClearsSelection() = runComposeUiTest {
+        val filterState = EntryListFilterState()
+        val state = EntryListState(
+            viewConf = AppConf().view,
+            filterState = filterState,
+            project = project(),
+            jumpToEntry = {},
+            dialogState = null,
+            enableContextMenu = false,
+        )
+        setContent {
+            AppTheme {
+                EntryList(
+                    editorConf = AppConf().editor,
+                    viewConf = AppConf().view,
+                    pinned = true,
+                    filterState = filterState,
+                    project = project(),
+                    jumpToEntry = {},
+                    onFocusedChanged = {},
+                    dialogState = null,
+                    consumeEditorEntryContextAction = null,
+                    state = state,
+                )
+            }
+        }
+
+        onNode(hasSetTextAction()).performTextInput("e2")
+
+        assertEquals(listOf(2), state.searchResult.map { it.index })
+        assertNull(state.selectedIndex)
     }
 
     @Test

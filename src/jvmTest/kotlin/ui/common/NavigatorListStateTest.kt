@@ -64,6 +64,16 @@ class NavigatorListStateTest {
     }
 
     @Test
+    fun `clearing a query selects the current item again`() {
+        val state = FakeNavigatorListState(currentIndex = 3, filteredIndexes = (0..4).toList())
+        state.updateSearch(selectFirst = true)
+        assertEquals(0, state.selectedIndex)
+
+        state.updateSearch(selectFirst = false)
+        assertEquals(3, state.selectedIndex)
+    }
+
+    @Test
     fun `no selection when the current item is filtered out`() {
         val state = FakeNavigatorListState(currentIndex = 3, filteredIndexes = listOf(0, 1, 2), filterActive = true)
         state.updateSearch()

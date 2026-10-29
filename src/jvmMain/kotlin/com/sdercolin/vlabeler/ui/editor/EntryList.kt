@@ -251,7 +251,7 @@ fun EntryList(
             text = filterState.filter.searchText,
             onTextChange = {
                 filterState.editFilter { copy(searchText = it) }
-                state.updateSearch(selectFirst = true)
+                state.updateSearch()
             },
             focusRequester = focusRequester,
             onFocusedChanged = {
@@ -263,7 +263,11 @@ fun EntryList(
             trailingContent = {
                 if (pinned) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        val countText = "${state.searchResult.size} / ${state.entries.size}"
+                        val countText = if (state.isFiltered) {
+                            state.searchResult.size.toString()
+                        } else {
+                            state.entries.size.toString()
+                        }
                         val alpha = if (state.isFiltered) 0.8f else 0.4f
                         val color = MaterialTheme.colors.onSurface.copy(alpha)
                         Spacer(modifier = Modifier.width(8.dp))
